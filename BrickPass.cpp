@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <string>
 #include <cctype> // Для std::isdigit
+#include <sstream> // Для std::istringstream
 
 class BrickPass {
 public:
@@ -17,15 +18,25 @@ public:
         std::cout << "Symbols: " << symbols_ << std::endl;
     }
 
-    // Статический метод для проверки, состоит ли строка только из цифр
-    static bool IsNumber(const std::string& str) {
-        if (str.empty()) return false;
-        for (char c : str) {
-            if (!std::isdigit(static_cast<unsigned char>(c))) {
-                return false;
-            }
+    // Encrypt: salt - двухзначное число, key - трехзначное число, phrase - строка
+    static int Encrypt(int salt, int key, const std::string& phrase) {
+        // Проверка диапазона для salt
+        if (salt < 10 || salt > 99) {
+            std::cout << "Salt must be a two-digit number." << std::endl;
+            return 1;
         }
-        return true;
+        // Проверка диапазона для key
+        if (key < 100 || key > 999) {
+            std::cout << "Key must be a three-digit number." << std::endl;
+            return 1;
+        }
+        if (phrase.empty()) {
+            std::cout << "Phrase must be a non-empty string." << std::endl;
+            return 1;
+        }
+        std::cout << "Encryption started..." << std::endl;
+        // ...
+        return 0;
     }
 
 private:
@@ -35,23 +46,35 @@ private:
 };
 
 int main() {
-    std::string salt, key, phrase;
+    std::string saltStr, keyStr, phrase;
+    int salt, key;
 
     std::cout << "Enter salt value: ";
-    std::getline(std::cin, salt);
-
+    std::getline(std::cin, saltStr);
     std::cout << "Enter key value: ";
-    std::getline(std::cin, key);
-
+    std::getline(std::cin, keyStr);
     std::cout << "Enter phrase value: ";
     std::getline(std::cin, phrase);
 
+    // Проверка, что saltStr и keyStr — числа
+    std::istringstream issSalt(saltStr), issKey(keyStr);
+    if (!(issSalt >> salt) || !(issKey >> key)) {
+        std::cout << "Salt and Key must be numbers." << std::endl;
+        return 1;
+    }
+
     BrickPass bp;
-    bp.PrintChar();
+    bp.PrintChar(); 
 
     std::cout << "Salt: " << salt << std::endl;
     std::cout << "Key: " << key << std::endl;
     std::cout << "Phrase: " << phrase << std::endl;
+
+    // Вызов функции Encrypt
+    int result = BrickPass::Encrypt(salt, key, phrase);
+    if (result == 1) {
+        return 1;
+    }
 
     return 0;
 }
