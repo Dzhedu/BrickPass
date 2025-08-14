@@ -1,10 +1,11 @@
 ﻿#include <iostream>
 #include <string>
+#include <cctype> // Для std::isdigit
 
 class BrickPass {
 public:
     BrickPass()
-        : letters_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"),
+        : letters_("ABCDEFGHIJKLMNñOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"),
           numbers_("0123456789"),
           symbols_("!@#$%^&*()-_=+[]{}|;:',.<>/?`~")
     {
@@ -15,6 +16,18 @@ public:
         std::cout << "Numbers: " << numbers_ << std::endl;
         std::cout << "Symbols: " << symbols_ << std::endl;
     }
+
+    // Статический метод для проверки, состоит ли строка только из цифр
+    static bool IsNumber(const std::string& str) {
+        if (str.empty()) return false;
+        for (char c : str) {
+            if (!std::isdigit(static_cast<unsigned char>(c))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 private:
     std::string letters_;  // All Latin alphabet letters
     std::string numbers_;  // All digits
@@ -36,7 +49,6 @@ int main() {
     BrickPass bp;
     bp.PrintChar();
 
-    // Example: output entered values
     std::cout << "Salt: " << salt << std::endl;
     std::cout << "Key: " << key << std::endl;
     std::cout << "Phrase: " << phrase << std::endl;
