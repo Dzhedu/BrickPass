@@ -1,13 +1,16 @@
 ﻿#include <iostream>
 #include <string>
-#include <cctype> // Для std::isdigit
-#include <sstream> // Для std::istringstream
-#include <algorithm> // Для std::find_if, std::isspace
+#include <cctype> // For std::isdigit
+#include <sstream> // For std::istringstream
+#include <algorithm> // For std::find_if, std::isspace
 
 class BrickPass {
 public:
     BrickPass()
-        : characters_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^-_=+[]{};:,./?~")
+        : characters_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^-_=+[]{};:,./?~"),
+          Letters_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"),
+          Numbers_("0123456789"),
+          Symbols_("!@#$%^-_=+[]{};:,./?~")
     {
     }
 
@@ -15,7 +18,7 @@ public:
         std::cout << "Characters: " << characters_ << std::endl;
     }
 
-    // Вспомогательная функция для обрезки пробелов с начала и конца строки
+    // Helper function to trim whitespace from the beginning and end of a string
     static std::string Trim(const std::string& str) {
         auto start = std::find_if_not(str.begin(), str.end(), [](unsigned char ch) { return std::isspace(ch); });
         auto end = std::find_if_not(str.rbegin(), str.rend(), [](unsigned char ch) { return std::isspace(ch); }).base();
@@ -23,22 +26,26 @@ public:
         return std::string(start, end);
     }
 
-    // Вспомогательная функция для проверки наличия пробелов в строке
-    static bool ContainsWhitespace(const std::string& str) {
-        return std::any_of(str.begin(), str.end(), [](unsigned char ch) { return std::isspace(ch); });
+    // Check that all characters in phrase are in Letters_, Numbers_, or Symbols_
+    bool IsPhraseValid(const std::string& phrase) const {
+        for (char ch : phrase) {
+            if (Letters_.find(ch) == std::string::npos &&
+                Numbers_.find(ch) == std::string::npos &&
+                Symbols_.find(ch) == std::string::npos) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    // Encrypt: salt - двухзначное число, key - трехзначное число, phrase - строка
-    static int Encrypt(int salt, int key, std::string phrase) {
-        // Обрезаем пробелы с начала и конца
+    // Encrypt: salt - two-digit number, key - three-digit number, phrase - string
+    int Encrypt(int salt, int key, std::string phrase) const {
         phrase = Trim(phrase);
 
-        // Проверка диапазона для salt
         if (salt < 10 || salt > 99) {
             std::cout << "Salt must be a two-digit number." << std::endl;
             return 1;
         }
-        // Проверка диапазона для key
         if (key < 100 || key > 999) {
             std::cout << "Key must be a three-digit number." << std::endl;
             return 1;
@@ -47,9 +54,9 @@ public:
             std::cout << "Phrase must be a non-empty string." << std::endl;
             return 1;
         }
-        // Проверка на наличие пробелов внутри строки
-        if (ContainsWhitespace(phrase)) {
-            std::cout << "Phrase must not contain any whitespace characters." << std::endl;
+        if (!IsPhraseValid(phrase)) {
+            std::cout << "Phrase can only contain the following characters: "
+                      << Letters_ << Numbers_ << Symbols_ << std::endl;
             return 1;
         }
         std::cout << "Encryption started..." << std::endl;
@@ -57,8 +64,16 @@ public:
         return 0;
     }
 
+    // Getters for Letters_, Numbers_, Symbols_
+    const std::string& GetLetters() const { return Letters_; }
+    const std::string& GetNumbers() const { return Numbers_; }
+    const std::string& GetSymbols() const { return Symbols_; }
+
 private:
-    std::string characters_;  // All Characters
+    std::string characters_;  // All characters
+    std::string Letters_;     // All letters
+    std::string Numbers_;     // All numbers
+    std::string Symbols_;     // All symbols
 };
 
 int main() {
@@ -72,10 +87,10 @@ int main() {
     std::cout << "Enter phrase value: ";
     std::getline(std::cin, phrase);
 
-    // Обрезаем пробелы с начала и конца для phrase
+    // Trim whitespace from the beginning and end of phrase
     phrase = BrickPass::Trim(phrase);
 
-    // Проверка, что saltStr и keyStr — числа
+    // Check that saltStr and keyStr are numbers
     std::istringstream issSalt(saltStr), issKey(keyStr);
     if (!(issSalt >> salt) || !(issKey >> key)) {
         std::cout << "Salt and Key must be numbers." << std::endl;
@@ -83,14 +98,24 @@ int main() {
     }
 
     BrickPass bp;
-    bp.PrintChar(); 
+    bp.PrintChar();
+
+    // Check that phrase contains only allowed characters
+    for (char ch : phrase) {
+        if (bp.GetLetters().find(ch) == std::string::npos &&
+            bp.GetNumbers().find(ch) == std::string::npos &&
+            bp.GetSymbols().find(ch) == std::string::npos) {
+            std::cout << "Phrase can only contain the following characters: "
+                      << bp.GetLetters() << bp.GetNumbers() << bp.GetSymbols() << std::endl;
+            return 1;
+        }
+    }
 
     std::cout << "Salt: " << salt << std::endl;
     std::cout << "Key: " << key << std::endl;
     std::cout << "Phrase: " << phrase << std::endl;
 
-    // Вызов функции Encrypt
-    int result = BrickPass::Encrypt(salt, key, phrase);
+    int result = bp.Encrypt(salt, key, phrase);
     if (result == 1) {
         return 1;
     }
