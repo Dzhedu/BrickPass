@@ -1,52 +1,44 @@
-﻿#include <iostream>
-#include <string>
-#include <cctype> // For std::isdigit
-#include <sstream> // For std::istringstream
-#include <algorithm> // For std::find_if, std::isspace
+﻿#include "BrickPass.h"
+#include <iostream>
+#include <algorithm>
 
-class BrickPass {
-public:
-    BrickPass() :
-        AllSymbols_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~"),
-        Punctuation_("!#$%&()*+,-./:;<=>?@[]^_`{|}~"),
-        LatAlfUp_("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-        LatAlfLow_("abcdefghijklmnopqrstuvwxyz"),
-        Digits_("0123456789")
-    {}
-                
-    // Getters for Punctuation_, LatAlfUp_, LatAlfLow_, and Digits_
-    const std::string& GetPunctuation() const { return Punctuation_; }
-    const std::string& GetLatAlfUp() const { return LatAlfUp_; }
-    const std::string& GetLatAlfLow() const { return LatAlfLow_; }
-    const std::string& GetDigits() const { return Digits_; }
+BrickPass::BrickPass()
+    : AllSymbols_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~"),
+      Punctuation_("!#$%&()*+,-./:;<=>?@[]^_`{|}~"),
+      LatAlfUp_("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+      LatAlfLow_("abcdefghijklmnopqrstuvwxyz"),
+      Digits_("0123456789")
+{}
 
-    void PrintChar() const {
-        std::cout << "AllSymbols: " << AllSymbols_ << std::endl;
+void BrickPass::PrintChar() const {
+    std::cout << "AllSymbols: " << AllSymbols_ << std::endl;
+}
+
+BrickPass::Result BrickPass::IsPhraseValid(const std::string& phrase) const {
+    for (char ch : phrase) {
+        if (AllSymbols_.find(ch) == std::string::npos)
+            return Result::Error("Invalid Character in phrase");
     }
+    return Result::Ok();
+}
 
-	// Check that all characters in phrase are in Punctuation_, LatAlfUp_, LaftAlfLow_, or Digits_
-    bool IsPhraseValid(const std::string& phrase) const {
-        for (char ch : phrase) {
-            if (AllSymbols_.find(ch) == std::string::npos) { return false; }
-        }
-        return true;
+int BrickPass::Encrypt(int salt, int key, std::string phrase) const {
+    auto result = IsPhraseValid(phrase);
+    if (!result.success) {
+        std::cerr << result.message << std::endl;
+        return result.success;
     }
-
-    int Encrypt(int salt, int key, std::string phrase) const {
-        return 0;
-    }
-
+	std::cout << "Encrypting with salt: " << salt << ", key: " << key << ", phrase: " << phrase << std::endl;
+    return 0;
+}
 
 
-private:
-    std::string AllSymbols_;
-    std::string Punctuation_;
-    std::string LatAlfUp_;
-	std::string LatAlfLow_;
-    std::string Digits_;
-};
+BrickPass::Result BrickPass::Result::Ok() { return { true, "" }; }
+BrickPass::Result BrickPass::Result::Error(const std::string& msg) { return { false, msg }; }
 
+/*
 int main() {
     BrickPass bp;
-	bp.PrintChar();
+    bp.PrintChar();
 }
+*/
