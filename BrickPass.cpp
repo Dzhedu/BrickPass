@@ -22,14 +22,35 @@ BrickPass::Result BrickPass::IsPhraseValid(const std::string& phrase) const {
     return Result::Ok();
 }
 
-int BrickPass::Encrypt(int salt, int key, std::string phrase) const {
+BrickPass::Result BrickPass::SaltIsValid(int salt) const {
+    if (salt < 1 || salt > 9999) {
+        return Result::Error("Salt must be between 1 and 9999");
+    }
+    return Result::Ok();
+}
+BrickPass::Result BrickPass::KeyIsValid(int key) const {
+    if (key < 1 || key > 99) {
+        return Result::Error("Key must be between 1 and 99");
+    }
+    return Result::Ok();
+}
+
+BrickPass::Result BrickPass::Encrypt(int salt, int key, std::string phrase) const {
     auto result = IsPhraseValid(phrase);
     if (!result.success) {
-        std::cerr << result.message << std::endl;
-        return result.success;
+        return { result.success, result.message };
     }
-	std::cout << "Encrypting with salt: " << salt << ", key: " << key << ", phrase: " << phrase << std::endl;
-    return 0;
+
+	auto saltResult = SaltIsValid(salt);
+    if (!saltResult.success) {
+        return { saltResult.success, saltResult.message };
+    }
+	auto keyResult = KeyIsValid(key);
+    if (!keyResult.success) {
+        return { keyResult.success, keyResult.message };
+	}
+
+    return {true,"Encripted Phrase"};
 }
 
 

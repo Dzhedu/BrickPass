@@ -20,7 +20,9 @@ public:
 
     void PrintChar() const;
     Result IsPhraseValid(const std::string& phrase) const;
-    int Encrypt(int salt, int key, std::string phrase) const;
+	Result SaltIsValid(int salt) const;
+	Result KeyIsValid(int key) const;
+    Result Encrypt(int salt, int key, std::string phrase) const;
 
 private:
     std::string AllSymbols_;
