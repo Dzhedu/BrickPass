@@ -24,8 +24,8 @@ BrickPass::Result BrickPass::IsPhraseValid(const std::string& phrase) const {
 }
 
 BrickPass::Result BrickPass::SaltIsValid(int salt) const {
-    if (salt < 1 || salt > 9999) {
-        return Result::Error("Salt must be between 1 and 9999");
+    if (salt < 1 || salt > 10000000) {
+        return Result::Error("Salt must be between 1 and 10000000");
     }
     return Result::Ok();
 }
@@ -40,7 +40,7 @@ std::string BrickPass::StrComplate(const std::string salt, const std::string phr
     int lengthSalt = salt.length();
     int lengthPhrase = phrase.length();
 	std::string resultSalt = salt;
-    while (phrase.length() > salt.length()) {
+    while (lengthPhrase > lengthSalt) {
 		resultSalt += clonedSalt;
         lengthSalt = resultSalt.length();
     if (lengthSalt > lengthPhrase) {
@@ -48,6 +48,45 @@ std::string BrickPass::StrComplate(const std::string salt, const std::string phr
         }
     }
     return resultSalt;
+}
+BrickPass::Result BrickPass::Shift(std::string strSalt, int key, std::string phrase) const {
+    std::string resultPhrase = "";
+    for (size_t i = 0; i < phrase.length(); ++i) {
+        char ch = phrase[i];
+        size_t pos = AllSymbols_.find(ch);
+        if (pos != std::string::npos) {
+            size_t newPos = (pos + (strSalt[i] - '0')) % AllSymbols_.length();
+            resultPhrase += AllSymbols_[newPos];
+        }
+    }
+	int resultKey = key;
+    if (key > resultPhrase.length()) {
+        resultKey = key % resultPhrase.length();
+    }
+    std::string firstPart = resultPhrase.substr(0, resultKey);
+    std::string secondPart = resultPhrase.substr(resultKey);
+    resultPhrase = secondPart + firstPart;
+    return { true, resultPhrase };
+}
+
+BrickPass::Result BrickPass::ReverseShift(std::string strSalt, int key, std::string phrase) const {
+    std::string resultPhrase = phrase;
+	int ResultKey = key;
+    if (key > phrase.length()) {
+        ResultKey = key % phrase.length();
+    }
+    std::string firstPart = phrase.substr(0, phrase.length() - ResultKey);
+    std::string secondPart = phrase.substr(phrase.length() - ResultKey);
+    resultPhrase = secondPart + firstPart;
+    for (size_t i = 0; i < resultPhrase.length(); ++i) {
+        char ch = resultPhrase[i];
+        size_t pos = AllSymbols_.find(ch);
+        if (pos != std::string::npos) {
+            size_t newPos = (pos + AllSymbols_.length() - (strSalt[i] - '0')) % AllSymbols_.length();
+            resultPhrase += AllSymbols_[newPos];
+        }
+    }
+    return { true, resultPhrase };
 }
 
 BrickPass::Result BrickPass::Encrypt(int salt, int key, std::string phrase) const {
@@ -75,16 +114,36 @@ BrickPass::Result BrickPass::Encrypt(int salt, int key, std::string phrase) cons
         {
         strSalt = strSalt;
 	}
-    return {true,"Encripted Phrase"};
+	auto shiftResult = Shift(strSalt, key, phrase);
+    return shiftResult;
+}
+BrickPass::Result BrickPass::Decrypt(int salt, int key, std::string phrase) const {
+    auto result = IsPhraseValid(phrase);
+    if (!result.success) {
+        return { result.success, result.message };
+    }
+    auto saltResult = SaltIsValid(salt);
+    if (!saltResult.success) {
+        return { saltResult.success, saltResult.message };
+    }
+    auto keyResult = KeyIsValid(key);
+    if (!keyResult.success) {
+        return { keyResult.success, keyResult.message };
+    }
+    std::string strSalt = std::to_string(salt);
+    if (strSalt.length() < phrase.length()) {
+        strSalt = StrComplate(strSalt, phrase);
+    }
+    else if (strSalt.length() > phrase.length()) {
+        strSalt = strSalt.substr(0, phrase.length());
+    } else
+        {
+        strSalt = strSalt;
+    }
+    auto reverseShiftResult = ReverseShift(strSalt, key, phrase);
+    return reverseShiftResult;
 }
 
 
 BrickPass::Result BrickPass::Result::Ok() { return { true, "" }; }
 BrickPass::Result BrickPass::Result::Error(const std::string& msg) { return { false, msg }; }
-
-/*
-int main() {
-    BrickPass bp;
-    bp.PrintChar();
-}
-*/
