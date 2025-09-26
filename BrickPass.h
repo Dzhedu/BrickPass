@@ -23,6 +23,8 @@ public:
 	Result SaltIsValid(int salt) const;
 	Result KeyIsValid(int key) const;
     Result Encrypt(int salt, int key, std::string phrase) const;
+	Result Shift(std::string strSalt, int key, std::string phrase) const;
+	std::string StrComplate(const std::string salt, const std::string phrase) const;
 
 private:
     std::string AllSymbols_;

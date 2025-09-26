@@ -1,6 +1,7 @@
 ﻿#include "BrickPass.h"
 #include <iostream>
 #include <algorithm>
+#include <vector>
 
 BrickPass::BrickPass()
     : AllSymbols_("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~"),
@@ -34,6 +35,20 @@ BrickPass::Result BrickPass::KeyIsValid(int key) const {
     }
     return Result::Ok();
 }
+std::string BrickPass::StrComplate(const std::string salt, const std::string phrase) const {
+    std::string clonedSalt = salt;
+    int lengthSalt = salt.length();
+    int lengthPhrase = phrase.length();
+	std::string resultSalt = salt;
+    while (phrase.length() > salt.length()) {
+		resultSalt += clonedSalt;
+        lengthSalt = resultSalt.length();
+    if (lengthSalt > lengthPhrase) {
+        resultSalt = resultSalt.substr(0, lengthPhrase);
+        }
+    }
+    return resultSalt;
+}
 
 BrickPass::Result BrickPass::Encrypt(int salt, int key, std::string phrase) const {
     auto result = IsPhraseValid(phrase);
@@ -49,7 +64,17 @@ BrickPass::Result BrickPass::Encrypt(int salt, int key, std::string phrase) cons
     if (!keyResult.success) {
         return { keyResult.success, keyResult.message };
 	}
+	std::string strSalt = std::to_string(salt);
 
+    if (strSalt.length() < phrase.length()) {
+        strSalt = StrComplate(strSalt, phrase);
+    }
+    else if (strSalt.length() > phrase.length()) {
+        strSalt = strSalt.substr(0, phrase.length());
+    } else
+        {
+        strSalt = strSalt;
+	}
     return {true,"Encripted Phrase"};
 }
 
