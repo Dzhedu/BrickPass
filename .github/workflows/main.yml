@@ -1,0 +1,35 @@
+name: Build and Package BrickPass on Windows 11 Pro 24H2
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target'
+        required: true
+        default: 'Release'
+
+jobs:
+  build:
+    runs-on: windows-2025
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Compile BrickPass.cpp to object file
+      run: cl /c BrickPass.cpp /EHsc
+
+    - name: Create static library BrickPass.lib
+      run: lib BrickPass.obj /OUT:BrickPass.lib
+
+    - name: Create ZIP archive
+      run: |
+        powershell Compress-Archive -Path BrickPass.lib,BrickPass.h,Version.h -DestinationPath BrickPass20250927.1.0.0.zip
+    - name: Upload ZIP as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BrickPassLibrary
+        path: BrickPass.zip
