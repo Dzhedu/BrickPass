@@ -32,4 +32,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: BrickPassLibrary
-        path: BrickPass.zip
+        path: BrickPass20250927.1.0.0.zip
