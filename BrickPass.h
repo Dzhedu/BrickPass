@@ -1,14 +1,12 @@
 #pragma once
 #include <string>
+#include "Version.h"
 
 class BrickPass {
 public:
     BrickPass();
 
-    const std::string& GetPunctuation() const;
-    const std::string& GetLatAlfUp() const;
-    const std::string& GetLatAlfLow() const;
-    const std::string& GetDigits() const;
+    static const char* GetVersion();
 
     struct Result {
         bool success;
@@ -18,7 +16,6 @@ public:
         static Result Error(const std::string& msg);
     };
 
-    void PrintChar() const;
     Result IsPhraseValid(const std::string& phrase) const;
 	Result SaltIsValid(int salt) const;
 	Result KeyIsValid(int key) const;
@@ -30,8 +27,4 @@ public:
 
 private:
     std::string AllSymbols_;
-    std::string Punctuation_;
-    std::string LatAlfUp_;
-    std::string LatAlfLow_;
-    std::string Digits_;
 };
